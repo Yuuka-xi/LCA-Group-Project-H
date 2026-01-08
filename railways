@@ -1,0 +1,333 @@
+install.packages("timelineS")
+install.packages("lubridate")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("reshape2")
+install.packages("rPref")
+install.packages("mco")
+install.packages("MASS")
+
+library(timelineS)
+library(lubridate)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(rPref)
+library(mco)
+library(MASS)
+
+
+#---------------------------------------------------------------------------
+
+
+plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
+  dataP <- data.frame(
+    Events = events.name,
+    Event_Dates = ymd(start.Date) + years(lifetime)
+  )
+  timelineS(
+    dataP,
+    main = plot.Name,
+    labels = events.name,
+    label.direction = "up",
+    label.position = 3
+  )
+}
+
+plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
+  dataP <- data.frame(
+    Events = events.name,
+    Event_Dates = ymd(start.Date) + years(lifetime)
+  )
+  timelineS(
+    dataP,
+    main = plot.Name,
+    labels = events.name,
+    label.direction = "up",
+    label.position = 3
+  )
+}
+
+dist.Events <- function (lifetime, events, start.Date, option.Name) {
+  # sort the events
+  events <- sort(events, decreasing = TRUE)
+  
+  # create the distribution of the events
+  distribution.events <- sapply(events, seq, from = 0, to = lifetime)
+  
+  # all events unlisted
+  all.events <- melt(distribution.events)
+  colnames(all.events) <- c("frequency", "event")
+  
+  # sort the events ascending
+  all.events <- all.events[order(all.events$frequency),]
+  
+  # get the unique sequence of events
+  unique.events <- all.events[!duplicated(all.events$frequency),]
+  unique.events$event[which(unique.events$frequency == 0)] <- "DC"
+  
+  # plot the timeline
+  plot.timeline(unique.events$frequency, unique.events$event, start.Date, option.Name)
+  
+  return(unique.events)
+}
+
+combine.lifeTimelines <- function(product.1, product.2, p1.dur, p2.dur) {
+  
+  base <- list(Names = c(), frequency = c(), duration = c())
+  
+  base$frequency <- sort(unique(c(product.1$frequency, product.2$frequency)))
+  
+  base$Names[1] <- "DC"
+  base$duration[1] <- 0
+  base$Names[length(base$frequency)] <- "END"
+  base$duration[length(base$frequency)] <- 0
+  
+  for(index in 2:(length(base$frequency) - 1)) {
+    
+    phase.1 <- product.1$event[product.1$frequency == base$frequency[index]]
+    phase.2 <- product.2$event[product.2$frequency == base$frequency[index]]
+    
+    if(length(phase.1) != 0 && length(phase.2) != 0) {
+      base$Names[index] <- paste(phase.1, phase.2)
+      base$duration[index] <- max(
+        p1.dur[names(p1.dur) == phase.1],
+        p2.dur[names(p2.dur) == phase.2]
+      )
+    } else if(length(phase.1) != 0) {
+      base$Names[index] <- phase.1
+      base$duration[index] <- p1.dur[names(p1.dur) == phase.1]
+    } else if(length(phase.2) != 0) {
+      base$Names[index] <- phase.2
+      base$duration[index] <- p2.dur[names(p2.dur) == phase.2]
+    } else {
+      base$duration[index] <- 0
+    }
+  }
+  
+  return(base)
+}
+
+lifetime <- 120
+start.Date <- "2026-01-01"
+
+# =========================
+# Railway 1 (rlw_* events)
+# =========================
+events.rlw <- c(
+  SLR.rlw_slp = 1,
+  SSRC.rlw_slp = 50,
+  RG.rlw_rls = 1,
+  RM.rlw_rls = 3,
+  LRR.rlw_rls = 1,
+  FRR.rlw_rls = 80,
+  ROP.rlw_plt = 80,
+  END = lifetime
+)
+
+dur.rlw <- c(
+  SLR.rlw_slp = 0,
+  SSRC.rlw_slp = 5,
+  RG.rlw_rls = 0,
+  RM.rlw_rls = 0,
+  LRR.rlw_rls = 0,
+  FRR.rlw_rls = 1.25,
+  ROP.rlw_plt = 0   
+)
+
+design.Options.rlw <- "RLW – Railway track (rlw_*)"
+
+# =========================
+# Railway 2 (rlwt events)
+# =========================
+events.rlwt <- c(
+  rlwt_RP.rep = 10,
+  rlwt_RP.loc = 5,
+  rlwt_TS.full = 20,
+  rlwt_TS.rep = 10,
+  rlwt_B.clean = 12,
+  rlwt_SB.geo = 100,
+  END = lifetime
+)
+
+dur.rlwt <- c(
+  rlwt_RP.rep = 1,
+  rlwt_RP.loc = 0,
+  rlwt_TS.full = 1,
+  rlwt_TS.rep = 0,
+  rlwt_B.clean = 0,
+  rlwt_SB.geo = 14
+)
+
+design.Options.rlwt <- "RLWT – Railway track (timber sleeper)"
+
+# ====== 跑老師的步驟：dist.Events -> maintenance.* -> 印出來 ======
+maintenance.rlw  <- dist.Events(lifetime, events.rlw,  start.Date, design.Options.rlw)
+maintenance.rlwt <- dist.Events(lifetime, events.rlwt, start.Date, design.Options.rlwt)
+
+maintenance.rlw
+maintenance.rlwt
+
+#------------------------
+integrated.interv <- combine.lifeTimelines(
+  maintenance.rlw,
+  maintenance.rlwt,
+  dur.rlw,
+  dur.rlwt
+)
+
+integrated.interv
+
+total.interruption <- sum(integrated.interv$duration)
+total.interruption
+###----
+# Railway 1: RLW (orange group: sleepers/rails/platform)
+# ---------------------------
+events.Op1.RLW <- c(
+  SLR.rlw_slp  = 1,
+  SSRC.rlw_slp = 50,
+  RG.rlw_rls   = 1,
+  RM.rlw_rls   = 3,
+  LRR.rlw_rls  = 1,
+  FRR.rlw_rls  = 80,
+  ROP.rlw_plt  = 80,
+  END = lifetime
+)
+
+duration.ev.RLW <- c(
+  SLR.rlw_slp  = 0,
+  SSRC.rlw_slp = 5,
+  RG.rlw_rls   = 0,
+  RM.rlw_rls   = 0,
+  LRR.rlw_rls  = 0,
+  FRR.rlw_rls  = 1.25,
+  ROP.rlw_plt  = 0
+)
+
+# ---------------------------
+# Railway 2: RLWT (yellow group: timber sleeper track)
+# ---------------------------
+events.Op1.RLWT <- c(
+  rlwt_RP.rep  = 10,
+  rlwt_RP.loc  = 5,
+  rlwt_TS.full = 20,
+  rlwt_TS.rep  = 10,
+  rlwt_B.clean = 12,
+  rlwt_SB.geo  = 80,
+  END = lifetime
+)
+
+duration.ev.RLWT <- c(
+  rlwt_RP.rep  = 1,
+  rlwt_RP.loc  = 0,
+  rlwt_TS.full = 1,
+  rlwt_TS.rep  = 0,
+  rlwt_B.clean = 0,
+  rlwt_SB.geo  = 10
+)
+
+# design option names (for plot titles / reporting)
+design.Options.RLW  <- "RLW – Railway Track (orange set)"
+design.Options.RLWT <- "RLWT – Railway Track (timber sleeper)"
+
+# generate maintenance schedules (this will also plot timelines because your dist.Events() calls plot.timeline)
+maintenance.RLW  <- dist.Events(lifetime, events.Op1.RLW,  start.Date, design.Options.RLW)
+maintenance.RLWT <- dist.Events(lifetime, events.Op1.RLWT, start.Date, design.Options.RLWT)
+
+# integrate two timelines
+integrated.interv <- combine.lifeTimelines(
+  maintenance.RLW,
+  maintenance.RLWT,
+  duration.ev.RLW,
+  duration.ev.RLWT
+)
+
+# total interruption duration (days)
+sum(integrated.interv$duration)
+
+design.explore <- function(events1, events2) {
+  results <- c()
+  
+  for(i in 1:dim(events1)[1]) {
+    ev1 <- unlist(events1[i, ])
+    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.RLW)
+    dur.ev1 <- ev1/2
+    
+    for(j in 1:dim(events2)[1]) {
+      ev2 <- unlist(events2[j, ])
+      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.RLWT)
+      dur.ev2 <- ev2/2
+      
+      combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
+      
+      min.dist.int <- min(abs(
+        combined.lifetime$frequency[1:(length(combined.lifetime$frequency) - 1)] -
+          combined.lifetime$frequency[2:length(combined.lifetime$frequency)]
+      ))
+      
+      results <- rbind(results, c(ev1, ev2,
+                                  dur = sum(combined.lifetime$duration),
+                                  dist.inter = min.dist.int
+      ))
+    }
+  }
+  
+  return(as.data.frame(results))
+}
+
+plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
+  invisible(NULL)
+}
+
+n.grid <- 2
+
+events.grid.RLW <- expand.grid(
+  SLR.rlw_slp  = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
+  SSRC.rlw_slp = sample(seq(40, 60, by = 5), n.grid, replace = TRUE),
+  RG.rlw_rls   = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
+  RM.rlw_rls   = sample(seq(2, 5, by = 1), n.grid, replace = TRUE),
+  LRR.rlw_rls  = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
+  FRR.rlw_rls  = sample(seq(60, 100, by = 10), n.grid, replace = TRUE),
+  ROP.rlw_plt  = sample(seq(60, 100, by = 10), n.grid, replace = TRUE)
+)
+
+events.grid.RLWT <- expand.grid(
+  rlwt_RP.rep  = sample(seq(8, 15, by = 1), n.grid, replace = TRUE),
+  rlwt_RP.loc  = sample(seq(3, 8, by = 1), n.grid, replace = TRUE),
+  rlwt_TS.full = sample(seq(15, 30, by = 5), n.grid, replace = TRUE),
+  rlwt_TS.rep  = sample(seq(8, 15, by = 1), n.grid, replace = TRUE),
+  rlwt_B.clean = sample(seq(8, 20, by = 2), n.grid, replace = TRUE),
+  rlwt_SB.geo  = sample(seq(80, 120, by = 10), n.grid, replace = TRUE)
+)
+
+response.space <- design.explore(events.grid.RLW, events.grid.RLWT)
+
+p <- low(dur) * high(dist.inter)
+sky <- psel(response.space, p)
+sky
+
+pareto2 <- psel(response.space, p, top = nrow(response.space))
+ggplot(response.space, aes(x = dur, y = dist.inter)) +
+  geom_point(shape = 21) +
+  geom_point(data = pareto2, size = 3, aes(color = factor(pareto2$.level)))
+names(response.space)
+str(response.space[, c("dur", "dist.inter")])
+response.space$dur <- as.numeric(as.character(response.space$dur))
+response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
+
+show_front <- function(pref) {
+  plot(response.space$dur, response.space$dist.inter)
+  sky <- psel(response.space, pref)
+  plot_front(response.space, pref, col = rgb(0, 0, 1))
+  points(sky$dur, sky$dist.inter, lwd = 3)
+}
+
+show_front(p)
+
+p <- high(dur) * low(dist.inter)
+show_front(p)
+sky <- psel(response.space, p)
+sky
+
+
+
