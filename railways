@@ -48,26 +48,18 @@ plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
   )
 }
 
-dist.Events <- function (lifetime, events, start.Date, option.Name) {
-  # sort the events
+dist.Events <- function (lifetime, events, start.Date, option.Name, do.plot = TRUE) {
   events <- sort(events, decreasing = TRUE)
-  
-  # create the distribution of the events
   distribution.events <- sapply(events, seq, from = 0, to = lifetime)
-  
-  # all events unlisted
   all.events <- melt(distribution.events)
   colnames(all.events) <- c("frequency", "event")
-  
-  # sort the events ascending
   all.events <- all.events[order(all.events$frequency),]
-  
-  # get the unique sequence of events
   unique.events <- all.events[!duplicated(all.events$frequency),]
   unique.events$event[which(unique.events$frequency == 0)] <- "DC"
   
-  # plot the timeline
-  plot.timeline(unique.events$frequency, unique.events$event, start.Date, option.Name)
+  if(do.plot) {
+    plot.timeline(unique.events$frequency, unique.events$event, start.Date, option.Name)
+  }
   
   return(unique.events)
 }
@@ -115,51 +107,37 @@ start.Date <- "2026-01-01"
 # Railway 1 (rlw_* events)
 # =========================
 events.rlw <- c(
-  SLR.rlw_slp = 1,
   SSRC.rlw_slp = 50,
-  RG.rlw_rls = 1,
-  RM.rlw_rls = 3,
-  LRR.rlw_rls = 1,
-  FRR.rlw_rls = 80,
-  ROP.rlw_plt = 80,
+  RM.rlw_rls   = 3,
+  FRR.rlw_rls  = 80,
   END = lifetime
 )
 
 dur.rlw <- c(
-  SLR.rlw_slp = 0,
   SSRC.rlw_slp = 5,
-  RG.rlw_rls = 0,
-  RM.rlw_rls = 0,
-  LRR.rlw_rls = 0,
-  FRR.rlw_rls = 1.25,
-  ROP.rlw_plt = 0   
+  RM.rlw_rls   = 0,
+  FRR.rlw_rls  = 1.25
 )
-
-design.Options.rlw <- "RLW – Railway track (rlw_*)"
 
 # =========================
 # Railway 2 (rlwt events)
 # =========================
 events.rlwt <- c(
-  rlwt_RP.rep = 10,
-  rlwt_RP.loc = 5,
   rlwt_TS.full = 20,
-  rlwt_TS.rep = 10,
-  rlwt_B.clean = 12,
-  rlwt_SB.geo = 100,
+  rlwt_SB.geo  = 100,
+  FRR.rlwt     = 80,
   END = lifetime
 )
 
 dur.rlwt <- c(
-  rlwt_RP.rep = 1,
-  rlwt_RP.loc = 0,
   rlwt_TS.full = 1,
-  rlwt_TS.rep = 0,
-  rlwt_B.clean = 0,
-  rlwt_SB.geo = 14
+  rlwt_SB.geo  = 14,
+  FRR.rlwt     = 1.25
 )
 
 design.Options.rlwt <- "RLWT – Railway track (timber sleeper)"
+design.Options.rlw <- "RLW – Railway track (rlw_*)"
+
 
 # ====== 跑老師的步驟：dist.Events -> maintenance.* -> 印出來 ======
 maintenance.rlw  <- dist.Events(lifetime, events.rlw,  start.Date, design.Options.rlw)
@@ -180,57 +158,45 @@ integrated.interv
 
 total.interruption <- sum(integrated.interv$duration)
 total.interruption
+
+
 ###----
-# Railway 1: RLW (orange group: sleepers/rails/platform)
+# Railway 1: RLW  (Updated to the NEW reduced event set)
 # ---------------------------
 events.Op1.RLW <- c(
-  SLR.rlw_slp  = 1,
-  SSRC.rlw_slp = 50,
-  RG.rlw_rls   = 1,
+  SSRC.rlw_slp = 49,
   RM.rlw_rls   = 3,
-  LRR.rlw_rls  = 1,
-  FRR.rlw_rls  = 80,
-  ROP.rlw_plt  = 80,
+  FRR.rlw_rls  = 79,
   END = lifetime
 )
 
 duration.ev.RLW <- c(
-  SLR.rlw_slp  = 0,
   SSRC.rlw_slp = 5,
-  RG.rlw_rls   = 0,
   RM.rlw_rls   = 0,
-  LRR.rlw_rls  = 0,
-  FRR.rlw_rls  = 1.25,
-  ROP.rlw_plt  = 0
+  FRR.rlw_rls  = 1.25
 )
 
 # ---------------------------
-# Railway 2: RLWT (yellow group: timber sleeper track)
+# Railway 2: RLWT (Updated to the NEW reduced event set)
 # ---------------------------
 events.Op1.RLWT <- c(
-  rlwt_RP.rep  = 10,
-  rlwt_RP.loc  = 5,
-  rlwt_TS.full = 20,
-  rlwt_TS.rep  = 10,
-  rlwt_B.clean = 12,
-  rlwt_SB.geo  = 80,
+  rlwt_TS.full = 19,
+  rlwt_SB.geo  = 97,
+  FRR.rlwt     = 80,
   END = lifetime
 )
 
 duration.ev.RLWT <- c(
-  rlwt_RP.rep  = 1,
-  rlwt_RP.loc  = 0,
   rlwt_TS.full = 1,
-  rlwt_TS.rep  = 0,
-  rlwt_B.clean = 0,
-  rlwt_SB.geo  = 10
+  rlwt_SB.geo  = 14,
+  FRR.rlwt     = 1.25
 )
 
 # design option names (for plot titles / reporting)
-design.Options.RLW  <- "RLW – Railway Track (orange set)"
-design.Options.RLWT <- "RLWT – Railway Track (timber sleeper)"
+design.Options.RLW  <- "RLW – Railway Track (new set)"
+design.Options.RLWT <- "RLWT – Railway Track (new set)"
 
-# generate maintenance schedules (this will also plot timelines because your dist.Events() calls plot.timeline)
+# generate maintenance schedules
 maintenance.RLW  <- dist.Events(lifetime, events.Op1.RLW,  start.Date, design.Options.RLW)
 maintenance.RLWT <- dist.Events(lifetime, events.Op1.RLWT, start.Date, design.Options.RLWT)
 
@@ -245,18 +211,22 @@ integrated.interv <- combine.lifeTimelines(
 # total interruption duration (days)
 sum(integrated.interv$duration)
 
+
+# =========================
+# Explore ranges (same logic, fix ONLY wrong names)
+# =========================
 design.explore <- function(events1, events2) {
   results <- c()
   
   for(i in 1:dim(events1)[1]) {
     ev1 <- unlist(events1[i, ])
-    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.RLW)
-    dur.ev1 <- ev1/2
+    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.RLW, do.plot = FALSE)
+    dur.ev1 <- duration.ev.RLW
     
     for(j in 1:dim(events2)[1]) {
       ev2 <- unlist(events2[j, ])
-      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.RLWT)
-      dur.ev2 <- ev2/2
+      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.RLWT, do.plot = FALSE)
+      dur.ev2 <- duration.ev.RLWT
       
       combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
       
@@ -275,29 +245,21 @@ design.explore <- function(events1, events2) {
   return(as.data.frame(results))
 }
 
-plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
-  invisible(NULL)
-}
+#----------------------------------------------------------------------------------------
 
-n.grid <- 2
+
+n.grid <- 5
 
 events.grid.RLW <- expand.grid(
-  SLR.rlw_slp  = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
-  SSRC.rlw_slp = sample(seq(40, 60, by = 5), n.grid, replace = TRUE),
-  RG.rlw_rls   = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
-  RM.rlw_rls   = sample(seq(2, 5, by = 1), n.grid, replace = TRUE),
-  LRR.rlw_rls  = sample(seq(1, 2, by = 1), n.grid, replace = TRUE),
-  FRR.rlw_rls  = sample(seq(60, 100, by = 10), n.grid, replace = TRUE),
-  ROP.rlw_plt  = sample(seq(60, 100, by = 10), n.grid, replace = TRUE)
+  SSRC.rlw_slp = sample(seq(40, 60, by = 1),  n.grid, replace = TRUE),
+  RM.rlw_rls   = sample(seq(2, 5,  by = 1),  n.grid, replace = TRUE),
+  FRR.rlw_rls  = sample(seq(60, 100, by = 1), n.grid, replace = TRUE)
 )
 
 events.grid.RLWT <- expand.grid(
-  rlwt_RP.rep  = sample(seq(8, 15, by = 1), n.grid, replace = TRUE),
-  rlwt_RP.loc  = sample(seq(3, 8, by = 1), n.grid, replace = TRUE),
-  rlwt_TS.full = sample(seq(15, 30, by = 5), n.grid, replace = TRUE),
-  rlwt_TS.rep  = sample(seq(8, 15, by = 1), n.grid, replace = TRUE),
-  rlwt_B.clean = sample(seq(8, 20, by = 2), n.grid, replace = TRUE),
-  rlwt_SB.geo  = sample(seq(80, 120, by = 10), n.grid, replace = TRUE)
+  rlwt_TS.full = sample(seq(15, 30, by = 1),  n.grid, replace = TRUE),
+  rlwt_SB.geo  = sample(seq(80, 120, by = 1), n.grid, replace = TRUE),
+  FRR.rlwt     = sample(seq(60, 100, by = 1), n.grid, replace = TRUE)
 )
 
 response.space <- design.explore(events.grid.RLW, events.grid.RLWT)
@@ -328,6 +290,78 @@ p <- high(dur) * low(dist.inter)
 show_front(p)
 sky <- psel(response.space, p)
 sky
+
+# ===== helper：把單一策略變成兩條 timeline，並算重疊 =====
+calc_overlap <- function(row) {
+  ev_rlw  <- c(SSRC.rlw_slp = row[["SSRC.rlw_slp"]],
+               RM.rlw_rls   = row[["RM.rlw_rls"]],
+               FRR.rlw_rls  = row[["FRR.rlw_rls"]],
+               END = lifetime)
+  
+  ev_rlwt <- c(rlwt_TS.full = row[["rlwt_TS.full"]],
+               rlwt_SB.geo  = row[["rlwt_SB.geo"]],
+               FRR.rlwt     = row[["FRR.rlwt"]],
+               END = lifetime)
+  
+  m1 <- dist.Events(lifetime, ev_rlw,  start.Date, "RLW",  do.plot = FALSE)
+  m2 <- dist.Events(lifetime, ev_rlwt, start.Date, "RLWT", do.plot = FALSE)
+  
+  # 只計算「有 duration 的事件」避免 0-day 事件干擾
+  y1 <- m1$frequency[m1$event %in% names(dur.rlw)  & dur.rlw[m1$event]  > 0]
+  y2 <- m2$frequency[m2$event %in% names(dur.rlwt) & dur.rlwt[m2$event] > 0]
+  
+  overlap_years <- intersect(y1, y2)
+  overlap_count <- length(overlap_years)
+  
+  # gap：兩集合年份的最小差（避免空集合）
+  if(length(y1)==0 || length(y2)==0) {
+    min_gap <- NA
+  } else {
+    min_gap <- min(abs(outer(y1, y2, "-")))
+  }
+  
+  c(overlap_count = overlap_count, min_gap = min_gap)
+}
+
+# ===== 對整個 response.space 算 overlap =====
+tmp <- t(apply(response.space, 1, calc_overlap))
+response.space$overlap_count <- tmp[, "overlap_count"]
+response.space$min_gap <- tmp[, "min_gap"]
+
+# ===== 挑出最錯開的策略（先 overlap=0，再 min_gap 最大，再 dur 最小）=====
+candidates <- response.space[order(response.space$overlap_count,
+                                   -response.space$min_gap,
+                                   response.space$dur), ]
+
+head(candidates, 10)
+
+best <- candidates[1, ]
+
+events.best.RLW <- c(
+  SSRC.rlw_slp = best$SSRC.rlw_slp,
+  RM.rlw_rls   = best$RM.rlw_rls,
+  FRR.rlw_rls  = best$FRR.rlw_rls,
+  END = lifetime
+)
+
+events.best.RLWT <- c(
+  rlwt_TS.full = best$rlwt_TS.full,
+  rlwt_SB.geo  = best$rlwt_SB.geo,
+  FRR.rlwt     = best$FRR.rlwt,
+  END = lifetime
+)
+
+maintenance.best.RLW  <- dist.Events(lifetime, events.best.RLW,  start.Date, "RLW BEST")
+maintenance.best.RLWT <- dist.Events(lifetime, events.best.RLWT, start.Date, "RLWT BEST")
+
+integrated.best.rail <- combine.lifeTimelines(
+  maintenance.best.RLW,
+  maintenance.best.RLWT,
+  dur.rlw,
+  dur.rlwt
+)
+integrated.best.rail
+sum(integrated.best.rail$duration)
 
 
 
