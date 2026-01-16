@@ -32,7 +32,19 @@ plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
   )
 }
 
-
+plot.timeline <- function(lifetime, events.name, start.Date, plot.Name) {
+  dataP <- data.frame(
+    Events = events.name,
+    Event_Dates = ymd(start.Date) + years(lifetime)
+  )
+  timelineS(
+    dataP,
+    main = plot.Name,
+    labels = events.name,
+    label.direction = "up",
+    label.position = 3
+  )
+}
 
 dist.Events <- function (lifetime, events, start.Date, option.Name, do.plot = TRUE) {
   events <- sort(events, decreasing = TRUE)
@@ -90,42 +102,35 @@ lifetime <- 120
 start.Date <- "2026-01-01"
 
 events.pcf <- c(
-  SR.BRC   = 60,
-  CSJR.BRC = 25,
-  CT.BRC   = 20,
-  SG.BRC   = 40,
-  END      = lifetime
+  CR.pcf = 15,
+  JM.pcf = 20,
+  PR.pcf = 60,
+  END = lifetime
 )
 
 dur.pcf <- c(
-  SR.BRC   = 21,
-  CSJR.BRC = 7,
-  CT.BRC   = 5,
-  SG.BRC   = 41
+  CR.pcf = 3,
+  JM.pcf = 5,
+  PR.pcf = 10
 )
-
 events.gcw <- c(
-  RM.STB = 5,
-  MP.STB = 15,
-  FR.STB = 25,
-  BR.STB = 2,
-  SM.STB = 1,
-  END    = lifetime
+  DC.gcw = 7,
+  GR.gcw = 10,
+  IR.gcw = 40,
+  END = lifetime
 )
 
 dur.gcw <- c(
-  RM.STB = 2,
-  MP.STB = 7,
-  FR.STB = 21,
-  BR.STB = 1,
-  SM.STB = 0
+  DC.gcw = 3,
+  GR.gcw = 5,
+  IR.gcw = 14
 )
+design.Options.pcf <- "PCF – Precast Concrete Facade"
+design.Options.gcw <- "GCW – Glass Curtain Wall"
 
-design.Options.pcf <- "BRC – Building Reinforced Concrete"
-design.Options.gcw <- "STB – Steel Truss Bridge"
 
-maintenance.pcf <- dist.Events(lifetime, events.pcf, start.Date, "BRC")
-maintenance.gcw <- dist.Events(lifetime, events.gcw, start.Date, "STB")
+maintenance.pcf <- dist.Events(lifetime, events.pcf, start.Date, "PCF")
+maintenance.gcw <- dist.Events(lifetime, events.gcw, start.Date, "GCW")
 
 maintenance.pcf
 maintenance.gcw
@@ -143,47 +148,18 @@ total.interruption <- sum(integrated.interv$duration)
 total.interruption
 
 
+# PCF (Precast Concrete Facade)
+events.Op1.PCF <- c(CR.pcf = 14, JM.pcf = 20, PR.pcf = 40, END = lifetime)
+duration.ev.PCF <- c(CR.pcf = 3, JM.pcf = 5, PR.pcf = 7)
 
 
-
-# PCF (now used as BRC) — overlap-focused intervals
-events.Op1.PCF <- c(
-  SR.BRC   = 50,  # 60 -> 50
-  CSJR.BRC = 25,
-  CT.BRC   = 20,  
-  SG.BRC   = 40, 
-  END      = lifetime
-)
-
-# durations keep same (unless you also want to test duration changes)
-duration.ev.PCF <- c(
-  SR.BRC   = 21,
-  CSJR.BRC = 7,
-  CT.BRC   = 5,
-  SG.BRC   = 41
-)
-
-# GCW (now used as STB) — overlap-focused intervals
-events.Op1.GCW <- c(
-  RM.STB = 5,   
-  MP.STB = 20,   # 15 -> 20 (跟 20/40/50 更對齊)
-  FR.STB = 25,  
-  BR.STB = 2,    
-  SM.STB = 1,    
-  END    = lifetime
-)
-
-duration.ev.GCW <- c(
-  RM.STB = 2,
-  MP.STB = 7,
-  FR.STB = 21,
-  BR.STB = 1,
-  SM.STB = 0
-)
+# GCW 
+events.Op1.GCW <- c(DC.gcw = 7, GR.gcw = 10, IR.gcw = 40, END = lifetime)
+duration.ev.GCW <- c(DC.gcw = 3, GR.gcw = 5, IR.gcw = 14)
 
 # design option names (for plot titles / reporting)
-design.Options.PCF <- "BRC – Building Reinforced Concrete"
-design.Options.GCW <- "STB – Steel Truss Bridge"
+design.Options.PCF <- "PCF – Precast Concrete Facade"
+design.Options.GCW <- "GCW – Glass Curtain Wall"
 
 maintenance.PCF <- dist.Events(lifetime, events.Op1.PCF, start.Date, design.Options.PCF)
 maintenance.GCW <- dist.Events(lifetime, events.Op1.GCW, start.Date, design.Options.GCW)
@@ -209,12 +185,12 @@ design.explore <- function(events1, events2) {
   for(i in 1:dim(events1)[1]) {
     ev1 <- unlist(events1[i, ])
     dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.PCF)
-    dur.ev1 <- ev1/2
+    dur.ev1 <- dur.pcf
     
     for(j in 1:dim(events2)[1]) {
       ev2 <- unlist(events2[j, ])
       dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.GCW)
-      dur.ev2 <- ev2/2
+      dur.ev2 <- dur.gcw
       
       combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
       
@@ -232,31 +208,23 @@ design.explore <- function(events1, events2) {
   
   return(as.data.frame(results))
 }
-
 n.grid <- 3
-
-# PCF scenarios (now used as BRC scenarios)
+# PCF scenarios
 events.grid.PCF <- expand.grid(
-  SR.BRC   = sample(seq(50, 70, by = 5), n.grid, replace = TRUE),
-  CSJR.BRC = sample(seq(20, 30, by = 1), n.grid, replace = TRUE),
-  CT.BRC   = sample(seq(15, 25, by = 1), n.grid, replace = TRUE),
-  SG.BRC   = sample(seq(30, 50, by = 5), n.grid, replace = TRUE)
+  CR.pcf = seq(12, 18, by = 1), n.grid),
+  JM.pcf = sample(seq(15, 25, by = 1), n.grid),
+  PR.pcf = sample(seq(40, 60, by = 1), n.grid)
 )
 
-# GCW scenarios (now used as STB scenarios)
+# GCW scenarios
 events.grid.GCW <- expand.grid(
-  RM.STB = sample(seq(3, 7, by = 1), n.grid, replace = TRUE),
-  MP.STB = sample(seq(10, 20, by = 1), n.grid, replace = TRUE),
-  FR.STB = sample(seq(20, 30, by = 1), n.grid, replace = TRUE),
-  BR.STB = sample(seq(1, 5, by = 1), n.grid, replace = TRUE),
-  SM.STB = sample(seq(1, 3, by = 1), n.grid, replace = TRUE)
+  DC.gcw = sample(seq(5, 10, by = 1), n.grid),
+  GR.gcw = sample(seq(8, 14, by = 1), n.grid),
+  IR.gcw = sample(seq(40, 60, by = 1), n.grid)
 )
 
 # Run exploration
 response.space <- design.explore(events.grid.PCF, events.grid.GCW)
-
-response.space$dur <- as.numeric(as.character(response.space$dur))
-response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
 
 p <- low(dur) * high(dist.inter)
 sky <- psel(response.space, p)
@@ -265,7 +233,6 @@ pareto2 <- psel(response.space, p, top = nrow(response.space))
 ggplot(response.space, aes(x = dur, y = dist.inter)) +
   geom_point(shape = 21) +
   geom_point(data = pareto2, size = 3, aes(color = factor(pareto2$.level)))
-
 names(response.space)
 str(response.space[, c("dur", "dist.inter")])
 response.space$dur <- as.numeric(as.character(response.space$dur))
