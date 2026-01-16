@@ -195,7 +195,7 @@ design.explore <- function(events1, events2) {
 
 
 
-n.grid <- 3
+n.grid <- 5
 
 # PCF scenarios (now used as BRC scenarios)
 events.grid.PCF <- expand.grid(
