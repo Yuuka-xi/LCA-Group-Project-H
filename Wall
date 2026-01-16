@@ -184,12 +184,12 @@ design.explore <- function(events1, events2) {
   
   for(i in 1:dim(events1)[1]) {
     ev1 <- unlist(events1[i, ])
-    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.PCF)
+    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.PCF, do.plot = FALSE)
     dur.ev1 <- dur.pcf
     
     for(j in 1:dim(events2)[1]) {
       ev2 <- unlist(events2[j, ])
-      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.GCW)
+      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.GCW, do.plot = FALSE)
       dur.ev2 <- dur.gcw
       
       combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
@@ -210,17 +210,18 @@ design.explore <- function(events1, events2) {
 }
 n.grid <- 3
 # PCF scenarios
+# PCF scenarios (parameter range exploration)
 events.grid.PCF <- expand.grid(
-  CR.pcf = seq(12, 18, by = 1), n.grid),
-  JM.pcf = sample(seq(15, 25, by = 1), n.grid),
-  PR.pcf = sample(seq(40, 60, by = 1), n.grid)
+  CR.pcf = seq(12, 18, by = 1),
+  JM.pcf = seq(15, 25, by = 1),
+  PR.pcf = seq(40, 60, by = 10)
 )
 
 # GCW scenarios
 events.grid.GCW <- expand.grid(
-  DC.gcw = sample(seq(5, 10, by = 1), n.grid),
-  GR.gcw = sample(seq(8, 14, by = 1), n.grid),
-  IR.gcw = sample(seq(40, 60, by = 1), n.grid)
+  DC.gcw = seq(5, 10, by = 1),
+  GR.gcw = seq(8, 14, by = 1),
+  IR.gcw = seq(40, 60, by = 10)
 )
 
 # Run exploration
