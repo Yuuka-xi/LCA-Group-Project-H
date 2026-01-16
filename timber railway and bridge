@@ -152,27 +152,22 @@ total.interruption
 
 
 
-# Explore ranges (same logic, fix ONLY wrong names)
+
+# =========================
+# Explore ranges (RLWT vs STB) — follow the "successful logic"
 # =========================
 design.explore <- function(events1, events2) {
   results <- c()
   
   for(i in 1:dim(events1)[1]) {
     ev1 <- unlist(events1[i, ])
-    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.rlwt, do.plot = FALSE)
-    
-    # FIX: use correct duration vector for RLWT (timber railway)
-    dur.ev1 <- dur.rlwt
-  
+    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.rlwt)
+    dur.ev1 <- dur.rlwt   # <-- just like success case
     
     for(j in 1:dim(events2)[1]) {
       ev2 <- unlist(events2[j, ])
-      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.stb, do.plot = FALSE)
-      
-      # FIX: use correct duration vector for STB (bridge)
-      dur.ev2 <- dur.stb
-      dur.ev2 <- c(dur.ev2, DC = 0, END = 0)
-    
+      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.stb)
+      dur.ev2 <- dur.stb  # <-- just like success case
       
       combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
       
@@ -191,41 +186,38 @@ design.explore <- function(events1, events2) {
   return(as.data.frame(results))
 }
 
-
 #--------------------------------------------------------------------
 n.grid <- 5
 
-# RLWT scenarios (Railway timber track) —
+# RLWT scenarios (Railway timber track) — fixed values + only FRR varies (65/66)
 events.grid.RLWT <- expand.grid(
-  rlwt_TS.full = sample(seq(30, 30, by = 1), n.grid, replace = TRUE),
-  rlwt_SB.geo  = sample(seq(90, 90, by = 1), n.grid, replace = TRUE),
+  rlwt_TS.full = 30,
+  rlwt_SB.geo  = 90,
   FRR.rlwt     = sample(seq(65, 66, by = 1), n.grid, replace = TRUE)
 )
 
-# STB scenarios (Steel Truss Bridge) — 
+# STB scenarios (Steel Truss Bridge)
 events.grid.STB <- expand.grid(
   MP.STB = sample(seq(10, 20, by = 1), n.grid, replace = TRUE),
   FR.STB = sample(seq(20, 30, by = 1), n.grid, replace = TRUE)
 )
 
-# Run exploration (same steps, just renamed inputs)
+# Run exploration
 response.space <- design.explore(events.grid.RLWT, events.grid.STB)
 
+# ensure numeric
 response.space$dur <- as.numeric(as.character(response.space$dur))
 response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
 
+# Preference 1
 p <- low(dur) * high(dist.inter)
 sky <- psel(response.space, p)
 sky
+
 pareto2 <- psel(response.space, p, top = nrow(response.space))
 ggplot(response.space, aes(x = dur, y = dist.inter)) +
   geom_point(shape = 21) +
   geom_point(data = pareto2, size = 3, aes(color = factor(pareto2$.level)))
-
-names(response.space)
-str(response.space[, c("dur", "dist.inter")])
-response.space$dur <- as.numeric(as.character(response.space$dur))
-response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
 
 show_front <- function(pref) {
   plot(response.space$dur, response.space$dist.inter)
@@ -236,8 +228,10 @@ show_front <- function(pref) {
 
 show_front(p)
 
-p <- high(dur) * low(dist.inter)
-show_front(p)
-sky <- psel(response.space, p)
-sky
+# Preference 2
+p2 <- high(dur) * low(dist.inter)
+show_front(p2)
+sky2 <- psel(response.space, p2)
+sky2
+
 
