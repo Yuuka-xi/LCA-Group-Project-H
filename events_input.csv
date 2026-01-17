@@ -1,7 +1,18 @@
 system,event_code,material,amount_per_event,unit
-BRC,SR.BRC,Hight-Strengh Repair Mortar/ Corrosion Inhibitor,9420,kg
-BRC,CSJR.BRC,Polyurethane (PU) Sealant,44,kg
-BRC,CT.BRC,Anri-Carboantion,48.75,kg
-BRC,SG.BRC,High-Strength Cement Grout,15000,kg
-STB,MP.STB,steel S355,450,kg
-STB,FR.STB,zinc-vinyl coating,1113,m?
+PCF,CR.pcf,TiO2 coating,120.00 ,m2
+PCF,JM.pcf,Sealant,120.00 ,m2
+PCF,PR.pcf,Full panel LCI,120.00 ,m2
+GCW,DC.gcw,cleaning agent,400.00 ,m2
+GCW,GR.gcw,EPDM Gasket,120.00 ,m2
+GCW,IR.gcw,Full IGU panel LCI,80.00 ,m2
+BRC,SR.brcs,Hight-Strengh Repair Mortar/ Corrosion Inhibitor,9420.00 ,kg/m3
+BRC,CSJR.brcs,Polyurethane (PU) Sealant,44.00 ,kg/m
+BRC,CT.brcp,Anri-Carboantion,48.75 ,kg/m2
+BRC,SG.brcf,High-Strength Cement Grout,15000.00 ,kg/m3
+STB,MP.stb,steel S355,450.00 ,kg
+STB,FR.stb,zinc-vinyl coating,1113.00 ,m2
+RLWC,SSRC.rlw_slp,Concrete,433593.00 ,kg/km
+RLWC,FRR.rlw_rls,Steel,120420.00 ,kg/km
+RLWT,rlwt_TS.full,Timber sleeper,125.00 ,m3/km
+RLWT,rlwt_SB.geo,Polypropylene geotextile,3000.00 ,m2/km
+RLWT,FRR.rlwt,Steel for rails,120420.00 ,kg/km
