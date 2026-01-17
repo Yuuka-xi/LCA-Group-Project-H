@@ -1,7 +1,21 @@
-material,system,scope,quantities,energy,CO2,NOx,Cost
-steel S355,STB,Truss,1,30,2.01,0.003,24.7
-zinc-vinyl coating,STB,Coating,1,18.9,1.6,0.0037,1
-Hight-Strengh Repair Mortar/ Corrosion Inhibitor,BRC,,1,99.5,3800.85,0.0045,16
-Polyurethane (PU) Sealant,BRC,,1,85,3200,0.0025,8
-Anri-Carboantion,BRC,,1,60,2500,0.0021,10
-High-Strength Cement Grout,BRC,,1,5,0.9,0.0016,1.2
+material,scope,quantities,energy,CO2,NOx,Cost
+Reinforced concrete,Full panel LCI,506.25,1.095,0.187,0.0298,0.258
+EPS insulation,Full panel LCI,20,89,2.8,0.009,4.09
+TiO2 coating,Full panel LCI,0.3,93,7.5,0.001,47.3
+Sealant,Full panel LCI,0.08,85,4.2,0.005,12.9
+Aluminium,Full IGU panel LCI,42.3,3.3,0.11,0.00026,3
+IGU / Float Glass,Full IGU panel LCI,30,7.5,1.45,0.0003,2.1
+EPDM Gasket,,0.3,0.2,0.08,0.0004,6.2
+cleaning agent,,0.05,5,1.8,0.004,2.5
+Hight-Strengh Repair Mortar/ Corrosion Inhibitor,,1,99.5,3800.85,0.0045,16
+Polyurethane (PU) Sealant,,1,85,3200,0.0025,8
+Anri-Carboantion,,1,60,2500,0.0021,10
+High-Strength Cement Grout,,1,5,0.9,0.0016,1.2
+steel S355,,1,30,2.01,0.003,24.7
+zinc-vinyl coating,,1,18.9,1.6,0.0037,1
+Concrete,,1,1.1,0.13,0,0.258
+Steel,,1,18.9,1.6,0.0037,1
+oak,Timber sleeper,750,10.4,0.87,0,1.85
+Wood preservative (creosote),Timber sleeper,60,51,0.43,0,2.28
+Polypropylene geotextile,,0.45,95.4,4.98,0,1.033
+Steel for rails,,1,18.9,1.6,0.0037,1
