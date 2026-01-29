@@ -162,7 +162,7 @@ events.STB <- c(
 
 events.RLWC <- c(
   SSRC.rlw_slp = 51,
-  RM.rlw_rls   = 5,
+  #RM.rlw_rls   = 5,
   FRR.rlw_rls  = 80,
   END      = lifetime
 )
@@ -283,9 +283,9 @@ integrated.Design
 
 
 # Convert environmental impacts into monetary costs
-Energy.costs <- 0.128
-CO2.unitcost <- 26 # per metric tone 
-NOx.unitCost <- 42 # per metric tone
+Energy.costs <- 0.081
+CO2.unitcost <- 285.6 # per metric tone 
+NOx.unitCost <- 11.72 # per metric tone
 
 integrated.Design <- mutate(
   integrated.Design,
@@ -349,12 +349,12 @@ fitness <- function(x) {
   # --------------------------------
   # Event durations (half-duration assumption)
   # --------------------------------
-  dur.pcf  <- unlist(y[1:3]   / 2)
-  dur.gcw  <- unlist(y[4:6]   / 2)
-  dur.brc  <- unlist(y[7:10]  / 2)   # <-- includes SG.brcf
-  dur.stb  <- unlist(y[11:12] / 2)
-  dur.rlwc <- unlist(y[13:14] / 2)
-  dur.rlwt <- unlist(y[15:17] / 2)
+  dur.pcf  <- unlist(y[1:3]   )
+  dur.gcw  <- unlist(y[4:6]   )
+  dur.brc  <- unlist(y[7:10]  )   # <-- includes SG.brcf
+  dur.stb  <- unlist(y[11:12] )
+  dur.rlwc <- unlist(y[13:14] )
+  dur.rlwt <- unlist(y[15:17] )
   
   # --------------------------------
   # Distribute events per system
@@ -429,11 +429,17 @@ fitness <- function(x) {
       product.4.stb$NOx +
       product.5.rlwc$NOx +
       product.6.rlwt$NOx
+  
   ))
   
   integrated.system <- mutate(
     integrated.system,
-    Costs = (Energy * Energy.costs + CO2 * CO2.unitcost + NOx * NOx.unitCost) / 10^9
+    Costs = (Energy * Energy.costs + CO2 * CO2.unitcost + NOx * NOx.unitCost +  product.1.pcf$Cost +
+               product.2.gcw$Cost +
+               product.3.brc$Cost +
+               product.4.stb$Cost +
+               product.5.rlwc$Cost +
+               product.6.rlwt$Cost) / 10^9
   )
   
   # -------------------------------------------------------
@@ -536,7 +542,7 @@ parcoord(
 pareto_only <- all.results[all.results$pareto == TRUE, ]
 
 # 2. Seleccionar las 5 soluciones más baratas (puedes cambiar 'cost' por 'co2')
-top_5_best <- head(pareto_only[order(pareto_only$cost), ], 5)
+top_5_best <- head(pareto_only[order(pareto_only$cost), ], 15)
 
 # Ver los intervalos de mantenimiento de las 5 mejores soluciones
-print(top_5_best[, 1:23])
+print(top_5_best[, 1:5])
