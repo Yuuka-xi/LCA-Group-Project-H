@@ -13,6 +13,8 @@
 
 *   LCA calculation
 *   Multi-objective optimization scripts
+*   LCImaterials.csv: Life cycle inventory per material 
+*   events_input.csv: Maintenance Inventory and Material Quantities
 
 ## 3. Archive
 
