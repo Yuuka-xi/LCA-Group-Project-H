@@ -105,11 +105,11 @@ dur.pcf <- c(
 )
 
 events.gcw <- c(
-    SSRC.RLW = 51,   
-    RM.RLW   = 3,    
-    FRR.RLW  = 80,   
-    END      = lifetime
-  )
+  SSRC.RLW = 51,   
+  RM.RLW   = 3,    
+  FRR.RLW  = 80,   
+  END      = lifetime
+)
 
 dur.gcw <- c(
   
@@ -118,14 +118,17 @@ dur.gcw <- c(
   FRR.RLW  = 0.25   
 )
 
+# =========================
+# System names 
+# =========================
 design.Options.pcf <- "BRC – Building Reinforced Concrete"
-design.Options.gcw <- "STB – Steel Truss Bridge"
+design.Options.gcw <- "RLW – Railway Track (orange track)"   # <- 原本寫成 STB 是錯的（但數據不改）
 
-maintenance.pcf <- dist.Events(lifetime, events.pcf, start.Date, "BRC")
-maintenance.gcw <- dist.Events(lifetime, events.gcw, start.Date, "STB")
-
-maintenance.pcf
-maintenance.gcw
+# =========================
+# Generate maintenance timelines 
+# =========================
+maintenance.pcf <- dist.Events(lifetime, events.pcf, start.Date, design.Options.pcf)
+maintenance.gcw <- dist.Events(lifetime, events.gcw, start.Date, design.Options.gcw)
 
 integrated.interv <- combine.lifeTimelines(
   maintenance.pcf,
@@ -134,46 +137,24 @@ integrated.interv <- combine.lifeTimelines(
   dur.gcw
 )
 
-integrated.interv
-
 total.interruption <- sum(integrated.interv$duration)
 total.interruption
 
 
-
-
-maintenance.PCF <- dist.Events(lifetime, events.Op1.PCF, start.Date, design.Options.PCF)
-maintenance.GCW <- dist.Events(lifetime, events.Op1.GCW, start.Date, design.Options.GCW)
-
-integrated.interv <- combine.lifeTimelines(
-  maintenance.PCF,
-  maintenance.GCW,
-  duration.ev.PCF,
-  duration.ev.GCW
-)
-sum(integrated.interv$duration)
-
-
-
-head(data.frame(
-  year = integrated.interv$frequency,
-  events = integrated.interv$Names,
-  duration_days = integrated.interv$duration
-), 20)
-any(is.na(integrated.interv$duration))
-
+# =========================
+# Design exploration 
+# =========================
 design.explore <- function(events1, events2) {
   results <- c()
   
   for(i in 1:dim(events1)[1]) {
     ev1 <- unlist(events1[i, ])
-    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.PCF)
-    dur.ev1 <- dur.pcf  # 或 dur.pcf / dur.BRC（看你前面怎麼命名）
-    
+    dist.1 <- dist.Events(lifetime, ev1, start.Date, design.Options.pcf, do.plot = FALSE)
+    dur.ev1 <- dur.pcf
     
     for(j in 1:dim(events2)[1]) {
       ev2 <- unlist(events2[j, ])
-      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.GCW)
+      dist.2 <- dist.Events(lifetime, ev2, start.Date, design.Options.gcw, do.plot = FALSE)
       dur.ev2 <- dur.gcw
       
       combined.lifetime <- combine.lifeTimelines(dist.1, dist.2, dur.ev1, dur.ev2)
@@ -194,10 +175,11 @@ design.explore <- function(events1, events2) {
 }
 
 
-
+# =========================
+# Grid sampling 
+# =========================
 n.grid <- 5
 
-# PCF scenarios (now used as BRC scenarios)
 events.grid.PCF <- expand.grid(
   SR.BRC   = sample(seq(50, 70, by = 1), n.grid, replace = TRUE),
   CSJR.BRC = sample(seq(20, 30, by = 1), n.grid, replace = TRUE),
@@ -205,15 +187,12 @@ events.grid.PCF <- expand.grid(
   SG.BRC   = sample(seq(30, 50, by = 1), n.grid, replace = TRUE)
 )
 
-# GCW scenarios (now used as RLW scenarios)
 events.grid.GCW <- expand.grid(
-
   SSRC.RLW = 51,
   RM.RLW   = sample(seq(2, 5, by = 1), n.grid, replace = TRUE),
   FRR.RLW  = 80
 )
 
-# Run exploration
 response.space <- design.explore(events.grid.PCF, events.grid.GCW)
 
 response.space$dur <- as.numeric(as.character(response.space$dur))
@@ -222,15 +201,11 @@ response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
 p <- low(dur) * high(dist.inter)
 sky <- psel(response.space, p)
 sky
+
 pareto2 <- psel(response.space, p, top = nrow(response.space))
 ggplot(response.space, aes(x = dur, y = dist.inter)) +
   geom_point(shape = 21) +
   geom_point(data = pareto2, size = 3, aes(color = factor(pareto2$.level)))
-
-names(response.space)
-str(response.space[, c("dur", "dist.inter")])
-response.space$dur <- as.numeric(as.character(response.space$dur))
-response.space$dist.inter <- as.numeric(as.character(response.space$dist.inter))
 
 show_front <- function(pref) {
   plot(response.space$dur, response.space$dist.inter)
@@ -241,8 +216,8 @@ show_front <- function(pref) {
 
 show_front(p)
 
-p <- high(dur) * low(dist.inter)
-show_front(p)
-sky <- psel(response.space, p)
-sky
+p2 <- high(dur) * low(dist.inter)
+show_front(p2)
+sky2 <- psel(response.space, p2)
+sky2
 
