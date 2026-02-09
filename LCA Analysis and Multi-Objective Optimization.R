@@ -83,7 +83,7 @@ combine.lifeTimelinesN <- function(timelines, durs, rule = c("max", "sum")) {
   # Optional: enforce start/end labels if years include 0 and lifetime
   #base$Names[base$frequency == 0] <- "DC"
   
-  # Loop over each year 开始一些烧脑的循环嵌套，说实话我没看懂… 能跑就行吧
+  # Loop over each year 
   for (k in seq_along(all_years)) {
     yr <- all_years[k]
     
